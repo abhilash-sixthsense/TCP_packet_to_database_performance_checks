@@ -1,0 +1,43 @@
+ 
+version: '3'
+services:
+  golang_app:
+    image: debian:12.7
+    working_dir: /code
+    volumes:
+      - ./src:/code
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/mydb?sslmode=disable
+    command: bash -c "if ! command -v go &> /dev/null; then apt-get update && apt-get install -y golang; fi && tail -f /dev/null"
+    tty: true
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=mydb
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_LISTEN_ADDRESS=0.0.0.0
+      - PGADMIN_LISTEN_PORT=5050
+    ports:
+      - "5050:5050"
+    depends_on:
+      - postgres
+    # volumes:
+    #   - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+
+# volumes:
+#   pgadmin_data:
